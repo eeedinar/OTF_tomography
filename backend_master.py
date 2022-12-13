@@ -15,7 +15,7 @@ def data_transfer(args):
     subprocess.run(cmd, stdout=sys.stdout, stderr = sys.stderr , text=True)
 
 def alignment(args):
-    username = args.username
+    microscope = args.microscope.lower()
     runtime  = str(args.runtime)            # argument passed must be str type
     pixel_size = str(round(args.pixel_size/10,3))    # angstrom to nm
     debug = str(args.debug)
@@ -23,7 +23,7 @@ def alignment(args):
     exposure_rate = str(args.exposure_rate)
     cmd = [args.python_path, os.path.join(args.prog_loc, 'alignment.py'), \
                         '--working_dir', os.path.join(args.working_dir,''), '--exposure_rate', exposure_rate, \
-                        '--pixel_size', pixel_size, '--runtime', runtime, '--debug', debug, '--super_res', super_res ]
+                        '--pixel_size', pixel_size, '--runtime', runtime, '--microscope', microscope, '--debug', debug, '--super_res', super_res ]
     subprocess.run(cmd, stdout=sys.stdout, stderr = sys.stderr ,   text=True)  #     print(p.stdout)  stdout=sys.stdout, stderr = sys.stderr   stdout=subprocess.PIPE, stderr=subprocess.PIPE        
 
 def email_notifications(args):

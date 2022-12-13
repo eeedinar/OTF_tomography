@@ -6,7 +6,7 @@ import pandas as pd
 from distutils.util import strtobool
 
 # Aretomo environment
-os.environ["ARETOMO_X"] = "1.3"
+os.environ["ARETOMO_X"] = "1.3.3"
 
 ### function to look for certain extension or static names containing files
 def cwd_files_search_with(seek_str, search_where = 'end', directory = None):
@@ -102,20 +102,22 @@ def main(args):
                         files_list.append(line.split("=")[1].strip().split('\\')[-1])  # print('Line Number:', lines.index(line))
 
             rot_flip_var = 0
-            RotationAndFlip = 0
 
             for file in files_list:
                 if os.path.exists(os.path.join(PWD, DATA_DIR,file))==False:
                     mdoc_list.remove(mdoc_file)
                     rot_flip_var = 1
                     break
-                # -rfsum parameter extraction
             if rot_flip_var == 0:
-                p = subprocess.run(["header", "--sbapp:a", "imod", file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True )
-                search_str = p.stdout   # '\n RO image file on unit:  1 ...
-                idx = search_str.find("need")    # 1369
-                RotationAndFlip_dict[mdoc_file] = search_str[idx:].split('\n')[0][5:].strip() if idx != -1 else '7'  ### default rotation flip is 0
-                rot_flip_var = 1
+                
+                ## if Microscope == “Talos” then -rfsum 2  - otherwise leave as rfsum 7
+                RotationAndFlip_dict[mdoc_file] = "2" if args.microscope=='talos' else "7"
+                ## -rfsum parameter extraction from header
+                # p = subprocess.run(["header", "--sbapp:a", "imod", file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True )
+                # search_str = p.stdout   # '\n RO image file on unit:  1 ...
+                # idx = search_str.find("need")    # 1369
+                # RotationAndFlip_dict[mdoc_file] = search_str[idx:].split('\n')[0][5:].strip() if idx != -1 else '7'  ### default rotation flip is 0
+
 
         ### if not computed do alignment
         for mdoc_file in mdoc_list:
@@ -173,8 +175,8 @@ def main(args):
             if p.returncode!=0:
                 error_ = 1
             try:
+                ### renaming tomo file
                 # print(os.path.isfile(os.path.join(PWD,ARETOMO_DIR, mdoc_file_base_string + "_TS", 'tomogram.mrc')))
-                # print('ok!')
                 # os.rename(os.path.join(PWD,ARETOMO_DIR, mdoc_file_base_string + "_TS", 'tomogram.mrc'), os.path.join(PWD,ARETOMO_DIR, mdoc_file_base_string + "_TS", mdoc_file_base_string + "_TS" + ".mrc"))
                 if debug:
                     print('Aretomo output mrc file creation was successful')
@@ -219,7 +221,8 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--working_dir',   type=str,   metavar='', required=True,  help = "Project working directory")
     parser.add_argument('-r', '--runtime',       type=float, metavar='', required=True,  help = "Please enter program runtine in hours")
     parser.add_argument('-p', '--pixel_size',    type=float, metavar='', required=True,  help = "Please enter pixel size")
-    parser.add_argument('-E', '--exposure_rate', type=float, metavar='', required=True, help = "Please enter exposure rate")
+    parser.add_argument('-E', '--exposure_rate', type=float, metavar='', required=True,  help = "Please enter exposure rate")
+    parser.add_argument('-m', '--microscope',    type=str,   metavar='', required=True,  help= "Please enter microscope")
     parser.add_argument('--debug',       type=lambda x:bool(strtobool(x)), nargs='?', const=True, default=False,  help= "Please enter 1 to debug")
     parser.add_argument('--super_res',       type=lambda x:bool(strtobool(x)), nargs='?', const=True, default=False,  help= "Please enter 1 to super resolution")
     args = parser.parse_args()
